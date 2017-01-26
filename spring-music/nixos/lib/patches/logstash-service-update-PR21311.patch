@@ -1,0 +1,91 @@
+From 10303e9e47525389334222a441010edebe972513 Mon Sep 17 00:00:00 2001
+From: makefu <github@syntax-fehler.de>
+Date: Tue, 20 Dec 2016 18:26:49 +0100
+Subject: [PATCH 1/2] services.logstash: update example and default filter
+
+---
+ nixos/modules/services/logging/logstash.nix | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/nixos/modules/services/logging/logstash.nix b/nixos/modules/services/logging/logstash.nix
+index 62f6e187..d9b3703 100644
+--- a/nixos/modules/services/logging/logstash.nix
++++ b/nixos/modules/services/logging/logstash.nix
+@@ -77,7 +77,7 @@ in
+ 
+       inputConfig = mkOption {
+         type = types.lines;
+-        default = ''stdin { type => "example" }'';
++        default = ''generator { }'';
+         description = "Logstash input configuration.";
+         example = ''
+           # Read from journal
+@@ -90,7 +90,7 @@ in
+ 
+       filterConfig = mkOption {
+         type = types.lines;
+-        default = ''noop {}'';
++        default = "";
+         description = "logstash filter configuration.";
+         example = ''
+           if [type] == "syslog" {
+@@ -108,11 +108,11 @@ in
+ 
+       outputConfig = mkOption {
+         type = types.lines;
+-        default = ''stdout { debug => true debug_format => "json"}'';
++        default = ''stdout { codec => rubydebug }'';
+         description = "Logstash output configuration.";
+         example = ''
+-          redis { host => "localhost" data_type => "list" key => "logstash" codec => json }
+-          elasticsearch { embedded => true }
++          redis { host => ["localhost"] data_type => "list" key => "logstash" codec => json }
++          elasticsearch { }
+         '';
+       };
+ 
+
+From e9c6cf02e6886bfc91f3bb866184e95054199ff1 Mon Sep 17 00:00:00 2001
+From: makefu <github@syntax-fehler.de>
+Date: Tue, 20 Dec 2016 18:27:29 +0100
+Subject: [PATCH 2/2] services.logstash: rename address to listenAddress
+
+---
+ nixos/modules/rename.nix                    | 1 +
+ nixos/modules/services/logging/logstash.nix | 4 ++--
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/nixos/modules/rename.nix b/nixos/modules/rename.nix
+index a89ce2c..41af409 100644
+--- a/nixos/modules/rename.nix
++++ b/nixos/modules/rename.nix
+@@ -18,6 +18,7 @@ with lib;
+     (mkRenamedOptionModule [ "services" "elasticsearch" "host" ] [ "services" "elasticsearch" "listenAddress" ])
+     (mkRenamedOptionModule [ "services" "graphite" "api" "host" ] [ "services" "graphite" "api" "listenAddress" ])
+     (mkRenamedOptionModule [ "services" "graphite" "web" "host" ] [ "services" "graphite" "web" "listenAddress" ])
++    (mkRenamedOptionModule [ "services" "logstash" "address" ] [ "services" "logstash" "listenAddress" ])
+     (mkRenamedOptionModule [ "services" "kibana" "host" ] [ "services" "kibana" "listenAddress" ])
+     (mkRenamedOptionModule [ "services" "mpd" "network" "host" ] [ "services" "mpd" "network" "listenAddress" ])
+     (mkRenamedOptionModule [ "services" "neo4j" "host" ] [ "services" "neo4j" "listenAddress" ])
+diff --git a/nixos/modules/services/logging/logstash.nix b/nixos/modules/services/logging/logstash.nix
+index d9b3703..c9477b9 100644
+--- a/nixos/modules/services/logging/logstash.nix
++++ b/nixos/modules/services/logging/logstash.nix
+@@ -63,7 +63,7 @@ in
+         description = "Enable the logstash web interface.";
+       };
+ 
+-      address = mkOption {
++      listenAddress = mkOption {
+         type = types.str;
+         default = "0.0.0.0";
+         description = "Address on which to start webserver.";
+@@ -147,7 +147,7 @@ in
+               ${cfg.outputConfig}
+             }
+           ''} " +
+-          ops cfg.enableWeb "-- web -a ${cfg.address} -p ${cfg.port}";
++          ops cfg.enableWeb "-- web -a ${cfg.listenAddress} -p ${cfg.port}";
+       };
+     };
+   };
